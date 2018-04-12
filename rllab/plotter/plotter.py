@@ -4,6 +4,13 @@ from multiprocessing import Process, Queue
 from rllab.sampler.utils import rollout
 import numpy as np
 
+tf_installed = False
+try:
+    import tensorflow as tf
+    tf_installed = True
+except ImportError:
+    pass
+
 __all__ = [
     'init_worker',
     'init_plot',
@@ -18,6 +25,13 @@ def _worker_start():
     env = None
     policy = None
     max_length = None
+    sess = None
+
+    global tf_installed
+    if tf_installed:
+        sess = tf.InteractiveSession()
+        sess.run(tf.global_variables_initializer())
+
     try:
         while True:
             msgs = {}
@@ -42,6 +56,8 @@ def _worker_start():
                     rollout(env, policy, max_path_length=max_length, animated=True, speedup=5)
     except KeyboardInterrupt:
         pass
+    if sess:
+        sess.close()
 
 
 def _shutdown_worker():

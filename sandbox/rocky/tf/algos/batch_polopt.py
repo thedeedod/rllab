@@ -6,6 +6,7 @@ import tensorflow as tf
 from sandbox.rocky.tf.samplers.batch_sampler import BatchSampler
 from sandbox.rocky.tf.samplers.vectorized_sampler import VectorizedSampler
 from rllab.sampler.utils import rollout
+import rllab.plotter as plotter
 
 
 class BatchPolopt(RLAlgorithm):
@@ -76,6 +77,9 @@ class BatchPolopt(RLAlgorithm):
         self.store_paths = store_paths
         self.whole_paths = whole_paths
         self.fixed_horizon = fixed_horizon
+        self.sess = None
+        self.plotter_init = False
+
         if sampler_cls is None:
             if self.policy.vectorized and not force_batch_sampler:
                 sampler_cls = VectorizedSampler
@@ -103,7 +107,8 @@ class BatchPolopt(RLAlgorithm):
         if sess is None:
             sess = tf.Session()
             sess.__enter__()
-            
+            self.policy.sess = sess
+
         sess.run(tf.global_variables_initializer())
         self.start_worker()
         start_time = time.time()
@@ -128,13 +133,15 @@ class BatchPolopt(RLAlgorithm):
                 logger.record_tabular('ItrTime', time.time() - itr_start_time)
                 logger.dump_tabular(with_prefix=False)
                 if self.plot:
-                    rollout(self.env, self.policy, animated=True, max_path_length=self.max_path_length)
+                    #rollout(self.env, self.policy, animated=True, max_path_length=self.max_path_length)
+                    self.update_plot()
                     if self.pause_for_plot:
                         input("Plotting evaluation run: Press Enter to "
                               "continue...")
         self.shutdown_worker()
         if created_session:
             sess.close()
+            self.policy.sess = None
 
     def log_diagnostics(self, paths):
         self.env.log_diagnostics(paths)
@@ -158,3 +165,10 @@ class BatchPolopt(RLAlgorithm):
     def optimize_policy(self, itr, samples_data):
         raise NotImplementedError
 
+    def update_plot(self):
+        if self.plot and not self.plotter_init:
+            plotter.init_plot(self.env, self.policy)
+            self.plotter_init = True
+
+        if self.plot:
+            plotter.update_plot(self.policy, self.max_path_length)

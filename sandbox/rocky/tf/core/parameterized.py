@@ -56,8 +56,15 @@ class Parameterized(object):
         return self._cached_param_shapes[tag_tuple]
 
     def get_param_values(self, **tags):
+        sess = tf.get_default_session()
+        if sess is None:
+            if self.sess is not None:
+                sess = self.sess
+            else:
+                raise NotImplementedError
+
         params = self.get_params(**tags)
-        param_values = tf.get_default_session().run(params)
+        param_values = sess.run(params)
         return flatten_tensors(param_values)
 
     def set_param_values(self, flattened_params, **tags):
