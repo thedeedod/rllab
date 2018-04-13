@@ -3,13 +3,8 @@ from queue import Empty
 from multiprocessing import Process, Queue
 from rllab.sampler.utils import rollout
 import numpy as np
-
-tf_installed = False
-try:
-    import tensorflow as tf
-    tf_installed = True
-except ImportError:
-    pass
+import tensorflow as tf
+import pickle
 
 __all__ = [
     'init_worker',
@@ -25,13 +20,10 @@ def _worker_start():
     env = None
     policy = None
     max_length = None
-    sess = None
 
-    global tf_installed
-    if tf_installed:
-        sess = tf.InteractiveSession()
-        sess.run(tf.global_variables_initializer())
-
+    sess = tf.Session()
+    sess.__enter__()
+    sess.run(tf.global_variables_initializer())
     try:
         while True:
             msgs = {}
@@ -45,7 +37,8 @@ def _worker_start():
             if 'stop' in msgs:
                 break
             elif 'update' in msgs:
-                env, policy = msgs['update']
+                env, policy_byte = msgs['update']
+                policy = pickle.loads(policy_byte)
                 # env.start_viewer()
             elif 'demo' in msgs:
                 param_values, max_length = msgs['demo']
@@ -76,7 +69,7 @@ def init_worker():
 
 
 def init_plot(env, policy):
-    queue.put(['update', env, policy])
+    queue.put(['update', env, pickle.dumps(policy)])
 
 
 def update_plot(policy, max_length=np.inf):

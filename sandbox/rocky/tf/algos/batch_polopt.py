@@ -77,9 +77,7 @@ class BatchPolopt(RLAlgorithm):
         self.store_paths = store_paths
         self.whole_paths = whole_paths
         self.fixed_horizon = fixed_horizon
-        self.sess = None
         self.plotter_init = False
-
         if sampler_cls is None:
             if self.policy.vectorized and not force_batch_sampler:
                 sampler_cls = VectorizedSampler
@@ -107,8 +105,7 @@ class BatchPolopt(RLAlgorithm):
         if sess is None:
             sess = tf.Session()
             sess.__enter__()
-            self.policy.sess = sess
-
+            
         sess.run(tf.global_variables_initializer())
         self.start_worker()
         start_time = time.time()
@@ -133,7 +130,6 @@ class BatchPolopt(RLAlgorithm):
                 logger.record_tabular('ItrTime', time.time() - itr_start_time)
                 logger.dump_tabular(with_prefix=False)
                 if self.plot:
-                    #rollout(self.env, self.policy, animated=True, max_path_length=self.max_path_length)
                     self.update_plot()
                     if self.pause_for_plot:
                         input("Plotting evaluation run: Press Enter to "
@@ -141,7 +137,6 @@ class BatchPolopt(RLAlgorithm):
         self.shutdown_worker()
         if created_session:
             sess.close()
-            self.policy.sess = None
 
     def log_diagnostics(self, paths):
         self.env.log_diagnostics(paths)
