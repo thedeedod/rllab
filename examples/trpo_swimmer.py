@@ -16,7 +16,7 @@ def run_task(v):
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
-    to_plot = False
+    to_plot = True
 
     algo = TRPO(
         env=env,
@@ -38,6 +38,6 @@ def run_task(v):
 run_experiment_lite(
     run_task,
     exp_prefix="first_exp",
-    #n_parallel=1,
+    n_parallel=4,
     plot=True
     )
