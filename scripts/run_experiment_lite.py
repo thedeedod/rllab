@@ -131,7 +131,11 @@ def run_experiment(argv):
             parallel_sampler.set_seed(args.seed)
 
     if args.plot:
+        # Theano plotter
         from rllab.plotter import plotter
+        plotter.init_worker()
+        # TensorFlow plotter
+        from sandbox.rocky.tf.plotter import plotter
         plotter.init_worker()
 
     if args.log_dir is None:

@@ -6,7 +6,7 @@ import tensorflow as tf
 from sandbox.rocky.tf.samplers.batch_sampler import BatchSampler
 from sandbox.rocky.tf.samplers.vectorized_sampler import VectorizedSampler
 from rllab.sampler.utils import rollout
-import rllab.plotter as plotter
+import sandbox.rocky.tf.plotter as plotter
 
 
 class BatchPolopt(RLAlgorithm):
@@ -105,7 +105,7 @@ class BatchPolopt(RLAlgorithm):
         if sess is None:
             sess = tf.Session()
             sess.__enter__()
-            
+
         sess.run(tf.global_variables_initializer())
         self.start_worker()
         start_time = time.time()
@@ -161,9 +161,8 @@ class BatchPolopt(RLAlgorithm):
         raise NotImplementedError
 
     def update_plot(self):
-        if self.plot and not self.plotter_init:
+        if not self.plotter_init:
             plotter.init_plot(self.env, self.policy)
             self.plotter_init = True
 
-        if self.plot:
-            plotter.update_plot(self.policy, self.max_path_length)
+        plotter.update_plot(self.policy, self.max_path_length)
