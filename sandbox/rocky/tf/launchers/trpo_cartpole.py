@@ -8,6 +8,7 @@ from sandbox.rocky.tf.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from sandbox.rocky.tf.envs.base import TfEnv
 from rllab.misc.instrument import stub, run_experiment_lite
 from rllab.envs.mujoco.swimmer_env import SwimmerEnv
+import time
 
 def run_task(v):
     #env = TfEnv(normalize(CartpoleEnv()))
@@ -21,6 +22,7 @@ def run_task(v):
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
+    to_plot = True
 
     algo = TRPO(
         env=env,
@@ -31,15 +33,17 @@ def run_task(v):
         n_itr=40,
         discount=0.99,
         step_size=0.01,
-        plot=True
+        plot=to_plot
         # optimizer=ConjugateGradientOptimizer(hvp_approach=FiniteDifferenceHvp(base_eps=1e-5))
-
     )
+    start_time = time.time()
     algo.train()
+    net_time = time.time() - start_time
+    print("\n--- TensorFlow [Plot = %s]: %s seconds ---" % (to_plot, net_time))
 
 run_experiment_lite(
     run_task,
     exp_prefix="second_exp",
-    #n_parallel=1,
+    n_parallel=4,
     plot=True
     )

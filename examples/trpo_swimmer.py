@@ -4,6 +4,7 @@ from rllab.envs.mujoco.swimmer_env import SwimmerEnv
 from rllab.envs.normalized_env import normalize
 from rllab.policies.gaussian_mlp_policy import GaussianMLPPolicy
 from rllab.misc.instrument import stub, run_experiment_lite
+import time
 
 def run_task(v):
     env = normalize(SwimmerEnv())
@@ -15,6 +16,7 @@ def run_task(v):
     )
 
     baseline = LinearFeatureBaseline(env_spec=env.spec)
+    to_plot = False
 
     algo = TRPO(
         env=env,
@@ -25,9 +27,13 @@ def run_task(v):
         n_itr=40,
         discount=0.99,
         step_size=0.01,
-        plot=True
+        plot=to_plot
     )
+    start_time = time.time()
     algo.train()
+    net_time = time.time() - start_time
+    print("\n--- Theano [Plot = %s]: %s seconds ---" % (to_plot, net_time))
+
 
 run_experiment_lite(
     run_task,
